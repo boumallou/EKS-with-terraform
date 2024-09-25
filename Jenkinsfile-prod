@@ -1,0 +1,80 @@
+pipeline {
+    agent {
+                label "agent-terraform"
+    }
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('prod-aws-secret-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('prod-aws-secret-access-key')
+        TF_VAR_prod_octnis_db_master_user_eu = credentials('prod_octnis_db_master_user-eu')
+        TF_VAR_prod_octnis_db_master_password_eu = credentials('prod_octnis_db_master_password-eu')
+        TF_VAR_prod_APRIL_MEGA_API_FULLERTON_KEY_eu = credentials('prod_APRIL_MEGA_API_FULLERTON_KEY-eu')
+        TF_VAR_prod_APRIL_MEGA_API_IHP_KEY_eu = credentials('prod_APRIL_MEGA_API_IHP_KEY-eu')
+        TF_VAR_prod_BANK_SUITE_API_KEY_eu = credentials('prod_BANK_SUITE_API_KEY-eu')
+        TF_VAR_prod_BAYMAX_CLIENT_ID_eu = credentials('prod_BAYMAX_CLIENT_ID-eu')
+        TF_VAR_prod_DJANGO_SECRET_KEY_eu = credentials('prod_DJANGO_SECRET_KEY-eu')
+        TF_VAR_prod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_ID_eu = credentials('prod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_ID-eu')
+        TF_VAR_prod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_SECRET_eu = credentials('prod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_SECRET-eu')
+        TF_VAR_prod_GRAVITEE_ASIA_MEMBER_CLIENT_ID_eu = credentials('prod_GRAVITEE_ASIA_MEMBER_CLIENT_ID-eu')
+        TF_VAR_prod_GRAVITEE_ASIA_MEMBER_CLIENT_SECRET_eu = credentials('prod_GRAVITEE_ASIA_MEMBER_CLIENT_SECRET-eu')
+        TF_VAR_prod_GRAVITEE_CLEVA_CLIENT_ID_eu = credentials('prod_GRAVITEE_CLEVA_CLIENT_ID-eu')
+        TF_VAR_prod_GRAVITEE_CLEVA_CLIENT_SECRET_eu = credentials('prod_GRAVITEE_CLEVA_CLIENT_SECRET-eu')
+        TF_VAR_prod_GRAVITEE_CLIENT_ID_eu = credentials('prod_GRAVITEE_CLIENT_ID-eu')
+        TF_VAR_prod_GRAVITEE_CLIENT_SECRET_eu = credentials('prod_GRAVITEE_CLIENT_SECRET-eu')
+        TF_VAR_prod_IPGPAY_CLIENT_ID_eu = credentials('prod_IPGPAY_CLIENT_ID-eu')
+        TF_VAR_prod_IPGPAY_FORM_ID_eu = credentials('prod_IPGPAY_FORM_ID-eu')
+        TF_VAR_prod_LIBERTYCOIN_COOKIE_AK_BMSC_eu = credentials('prod_LIBERTYCOIN_COOKIE_AK_BMSC-eu')
+        TF_VAR_prod_NIS_APRIL_ON_CLIENT_ID_eu = credentials('prod_NIS_APRIL_ON_CLIENT_ID-eu')
+        TF_VAR_prod_NIS_APRIL_ON_CLIENT_SECRET_eu = credentials('prod_NIS_APRIL_ON_CLIENT_SECRET-eu')
+        TF_VAR_prod_NIS_GRAVITEE_PASSWORD_eu = credentials('prod_NIS_GRAVITEE_PASSWORD-eu')
+        TF_VAR_prod_NIS_GRAVITEE_USERNAME_eu = credentials('prod_NIS_GRAVITEE_USERNAME-eu')
+        TF_VAR_prod_NIS_PORTAL_TOKEN_eu = credentials('prod_NIS_PORTAL_TOKEN-eu')
+        TF_VAR_prod_NIS_PORTAL_TOKEN_PIN_eu = credentials('prod_NIS_PORTAL_TOKEN_PIN-eu')
+        TF_VAR_prod_NIS_PORTAL_TOKEN_SIGNATURE_eu = credentials('prod_NIS_PORTAL_TOKEN_SIGNATURE-eu')
+        TF_VAR_prod_SALESFORCE_ASIA_CLIENT_ID_eu = credentials('prod_SALESFORCE_ASIA_CLIENT_ID-eu')
+        TF_VAR_prod_SALESFORCE_ASIA_CLIENT_SECRET_eu = credentials('prod_SALESFORCE_ASIA_CLIENT_SECRET-eu')
+        TF_VAR_prod_SALESFORCE_GRANT_TYPE_eu = credentials('prod_SALESFORCE_GRANT_TYPE-eu')
+        TF_VAR_prod_SALESFORCE_PASSWORD_eu = credentials('prod_SALESFORCE_PASSWORD-eu')
+        TF_VAR_prod_SALESFORCE_ASIA_SALES_CHATTER_ID_eu = credentials('prod_SALESFORCE_ASIA_SALES_CHATTER_ID-eu')
+        TF_VAR_prod_SALESFORCE_USERNAME_eu = credentials('prod_SALESFORCE_USERNAME-eu')
+        TF_VAR_prod_GRAVITEE_PAYMENT_CLIENT_ID_eu = credentials('prod_GRAVITEE_PAYMENT_CLIENT_ID-eu')
+        TF_VAR_prod_GRAVITEE_PAYMENT_CLIENT_SECRET_eu = credentials('prod_GRAVITEE_PAYMENT_CLIENT_SECRET-eu')
+
+    }
+    stages {
+        stage('Terraform INIT') {
+            steps {
+                script {
+                    sh ('echo Running Terraform INIT')
+                    git branch: 'main-dev',
+                    credentialsId: '4ce76f5a-2e63-4cc5-aec7-4f9ed34908c4',
+                    url: 'git@gitlab.com:uex-devops/terraform.git'
+                    sh """
+                    terraform -chdir=environments/prod init
+                    """
+                }
+            }
+        }
+        stage('Terraform PLAN') {
+            steps {
+                script {
+                    sh ('echo Running Terraform PLAN')
+                    sh """
+                    terraform -chdir=environments/prod plan -no-color
+                    """
+                }
+            }
+        }
+        stage('Terraform APPLY') {
+            steps {
+                input 'Do you approve deployment ?'
+                script {
+                    sh ('echo Running Terraform APPLY')
+                    sh """
+                    terraform -chdir=environments/prod apply -auto-approve
+                    """
+                }
+            }
+        }
+
+    }
+}

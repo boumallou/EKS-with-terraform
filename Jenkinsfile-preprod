@@ -1,0 +1,82 @@
+pipeline {
+    agent {
+        label "agent-terraform"
+    }
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('preprod-aws-secret-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('preprod-aws-secret-access-key')
+        TF_VAR_preprod_octnis_db_master_user = credentials('preprod_octnis_db_master_user')
+        TF_VAR_preprod_octnis_db_master_password = credentials('preprod_octnis_db_master_password')
+        TF_VAR_preprod_APRIL_MEGA_API_FULLERTON_KEY = credentials('preprod_APRIL_MEGA_API_FULLERTON_KEY')
+        TF_VAR_preprod_APRIL_MEGA_API_IHP_KEY = credentials('preprod_APRIL_MEGA_API_IHP_KEY')
+        TF_VAR_preprod_NIS_PORTAL_TOKEN = credentials('preprod_NIS_PORTAL_TOKEN')
+        TF_VAR_preprod_NIS_PORTAL_TOKEN_SIGNATURE = credentials('preprod_NIS_PORTAL_TOKEN_SIGNATURE')
+        TF_VAR_preprod_NIS_PORTAL_TOKEN_PIN = credentials('preprod_NIS_PORTAL_TOKEN_PIN')
+        TF_VAR_preprod_NIS_GRAVITEE_USERNAME = credentials('preprod_NIS_GRAVITEE_USERNAME')
+        TF_VAR_preprod_NIS_GRAVITEE_PASSWORD = credentials('preprod_NIS_GRAVITEE_PASSWORD')
+        TF_VAR_preprod_GRAVITEE_CLIENT_SECRET = credentials('preprod_GRAVITEE_CLIENT_SECRET')
+        TF_VAR_preprod_GRAVITEE_CLIENT_ID = credentials('preprod_GRAVITEE_CLIENT_ID')
+        TF_VAR_preprod_GRAVITEE_ASIA_MEMBER_CLIENT_SECRET = credentials('preprod_GRAVITEE_ASIA_MEMBER_CLIENT_SECRET')
+        TF_VAR_preprod_GRAVITEE_ASIA_MEMBER_CLIENT_ID = credentials('preprod_GRAVITEE_ASIA_MEMBER_CLIENT_ID')
+        TF_VAR_preprod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_SECRET = credentials('preprod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_SECRET')
+        TF_VAR_preprod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_ID = credentials('preprod_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_ID')
+        TF_VAR_preprod_DJANGO_SECRET_KEY = credentials('preprod_DJANGO_SECRET_KEY')
+        TF_VAR_preprod_NIS_APRIL_ON_CLIENT_ID = credentials('preprod_NIS_APRIL_ON_CLIENT_ID')
+        TF_VAR_preprod_NIS_APRIL_ON_CLIENT_SECRET = credentials('preprod_NIS_APRIL_ON_CLIENT_SECRET')
+        TF_VAR_preprod_GRAVITEE_CLEVA_CLIENT_ID = credentials('preprod_GRAVITEE_CLEVA_CLIENT_ID')
+        TF_VAR_preprod_GRAVITEE_CLEVA_CLIENT_SECRET = credentials('preprod_GRAVITEE_CLEVA_CLIENT_SECRET')
+        TF_VAR_preprod_LIBERTYCOIN_COOKIE_AK_BMSC = credentials('preprod_LIBERTYCOIN_COOKIE_AK_BMSC')
+        TF_VAR_preprod_IPGPAY_CLIENT_ID = credentials('preprod_IPGPAY_CLIENT_ID')
+        TF_VAR_preprod_IPGPAY_FORM_ID = credentials('preprod_IPGPAY_FORM_ID')
+        TF_VAR_preprod_SALESFORCE_GRANT_TYPE = credentials('preprod_SALESFORCE_GRANT_TYPE')
+        TF_VAR_preprod_SALESFORCE_CLIENT_ID = credentials('preprod_SALESFORCE_CLIENT_ID')
+        TF_VAR_preprod_SALESFORCE_CLIENT_SECRET = credentials('preprod_SALESFORCE_CLIENT_SECRET')
+        TF_VAR_preprod_SALESFORCE_USERNAME = credentials('preprod_SALESFORCE_USERNAME')
+        TF_VAR_preprod_SALESFORCE_PASSWORD = credentials('preprod_SALESFORCE_PASSWORD')
+        TF_VAR_preprod_SALESFORCE_SALES_CHATTER_ID = credentials('preprod_SALESFORCE_SALES_CHATTER_ID')
+        TF_VAR_preprod_BANK_SUITE_API_KEY = credentials('preprod_BANK_SUITE_API_KEY')
+        TF_VAR_preprod_BAYMAX_EU_CLIENT_ID = credentials('preprod_BAYMAX_EU_CLIENT_ID')
+        TF_VAR_preprod_NIS_GRAVITEE_AUTH_URL = "https://ppr-am-gateway.april.fr"
+        TF_VAR_preprod_GRAVITEE_PAYMENT_CLIENT_ID = credentials('preprod_GRAVITEE_PAYMENT_CLIENT_ID')
+        TF_VAR_preprod_GRAVITEE_PAYMENT_CLIENT_SECRET = credentials('preprod_GRAVITEE_PAYMENT_CLIENT_SECRET')
+        TF_VAR_preprod_BAYMAX_EU_APRIL_CLIENT_ID = credentials('preprod_BAYMAX_EU_APRIL_CLIENT_ID')
+        TF_VAR_preprod_BAYMAX_EU_APRIL_CLIENT_SECRET = credentials('preprod_BAYMAX_EU_APRIL_CLIENT_SECRET')
+    }
+    stages {
+        stage('Terraform INIT') {
+            steps {
+                script {
+                    sh ('echo Running Terraform INIT')
+                    git branch: 'main-dev',
+                    credentialsId: '4ce76f5a-2e63-4cc5-aec7-4f9ed34908c4',
+                    url: 'git@gitlab.com:uex-devops/terraform.git'
+                    sh """
+                    terraform -chdir=environments/preprod init
+                    """
+                }
+            }
+        }
+        stage('Terraform PLAN') {
+            steps {
+                script {
+                    sh ('echo Running Terraform PLAN')
+                    sh """
+                    terraform -chdir=environments/preprod plan -no-color
+                    """
+                }
+            }
+        }
+        stage('Terraform APPLY') {
+            steps {
+                input 'Do you approve deployment ?'
+                script {
+                    sh ('echo Running Terraform APPLY')
+                    sh """
+                    terraform -chdir=environments/preprod apply -auto-approve
+                    """
+                }
+            }
+        }
+
+    }
+}

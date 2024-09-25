@@ -1,0 +1,79 @@
+pipeline {
+    agent {
+                label "agent-terraform"
+    }
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('staging-aws-secret-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('staging-aws-secret-access-key')
+        TF_VAR_staging_octnis_db_master_user = credentials('staging_octnis_db_master_user')
+        TF_VAR_staging_octnis_db_master_password = credentials('staging_octnis_db_master_password')
+        TF_VAR_staging_APRIL_MEGA_API_FULLERTON_KEY = credentials('staging_APRIL_MEGA_API_FULLERTON_KEY')
+        TF_VAR_staging_APRIL_MEGA_API_IHP_KEY = credentials('staging_APRIL_MEGA_API_IHP_KEY')
+        TF_VAR_staging_NIS_PORTAL_TOKEN = credentials('staging_NIS_PORTAL_TOKEN')
+        TF_VAR_staging_NIS_PORTAL_TOKEN_SIGNATURE = credentials('staging_NIS_PORTAL_TOKEN_SIGNATURE')
+        TF_VAR_staging_NIS_PORTAL_TOKEN_PIN = credentials('staging_NIS_PORTAL_TOKEN_PIN')
+        TF_VAR_staging_NIS_GRAVITEE_USERNAME = credentials('staging_NIS_GRAVITEE_USERNAME')
+        TF_VAR_staging_NIS_GRAVITEE_PASSWORD = credentials('staging_NIS_GRAVITEE_PASSWORD')
+        TF_VAR_staging_GRAVITEE_CLIENT_SECRET = credentials('staging_GRAVITEE_CLIENT_SECRET')
+        TF_VAR_staging_GRAVITEE_CLIENT_ID = credentials('staging_GRAVITEE_CLIENT_ID')
+        TF_VAR_staging_GRAVITEE_ASIA_MEMBER_CLIENT_SECRET = credentials('staging_GRAVITEE_ASIA_MEMBER_CLIENT_SECRET')
+        TF_VAR_staging_GRAVITEE_ASIA_MEMBER_CLIENT_ID = credentials('staging_GRAVITEE_ASIA_MEMBER_CLIENT_ID')
+        TF_VAR_staging_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_SECRET = credentials('staging_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_SECRET')
+        TF_VAR_staging_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_ID = credentials('staging_GRAVITEE_ASIA_BUSINESS_MEMBER_CLIENT_ID')
+        TF_VAR_staging_DJANGO_SECRET_KEY = credentials('staging_DJANGO_SECRET_KEY')
+        TF_VAR_staging_NIS_APRIL_ON_CLIENT_ID = credentials('staging_NIS_APRIL_ON_CLIENT_ID')
+        TF_VAR_staging_NIS_APRIL_ON_CLIENT_SECRET = credentials('staging_NIS_APRIL_ON_CLIENT_SECRET')
+        TF_VAR_staging_GRAVITEE_CLEVA_CLIENT_ID = credentials('staging_GRAVITEE_CLEVA_CLIENT_ID')
+        TF_VAR_staging_GRAVITEE_CLEVA_CLIENT_SECRET = credentials('staging_GRAVITEE_CLEVA_CLIENT_SECRET')
+        TF_VAR_staging_LIBERTYCOIN_COOKIE_AK_BMSC = credentials('staging_LIBERTYCOIN_COOKIE_AK_BMSC')
+        TF_VAR_staging_IPGPAY_CLIENT_ID = credentials('staging_IPGPAY_CLIENT_ID')
+        TF_VAR_staging_IPGPAY_FORM_ID = credentials('staging_IPGPAY_FORM_ID')
+        TF_VAR_staging_BANK_SUITE_API_KEY = credentials('staging_BANK_SUITE_API_KEY')
+        TF_VAR_staging_BAYMAX_CLIENT_ID = credentials('staging_BAYMAX_CLIENT_ID')
+        TF_VAR_staging_SALESFORCE_CLIENT_ID = credentials('staging_SALESFORCE_CLIENT_ID')
+        TF_VAR_staging_SALESFORCE_CLIENT_SECRET = credentials('staging_SALESFORCE_CLIENT_SECRET')
+        TF_VAR_staging_SALESFORCE_PASSWORD = credentials('staging_SALESFORCE_PASSWORD')
+        TF_VAR_staging_NIS_GRAVITEE_AUTH_URL = "https://rec-am-gateway.april.fr"
+        TF_VAR_staging_SALESFORCE_SALES_CHATTER_ID = credentials('staging_SALESFORCE_SALES_CHATTER_ID')
+        TF_VAR_staging_BAYMAX_EU_CLIENT_ID = credentials('staging_BAYMAX_EU_CLIENT_ID')
+        TF_VAR_staging_GRAVITEE_PAYMENT_CLIENT_ID = credentials('staging_GRAVITEE_PAYMENT_CLIENT_ID')
+        TF_VAR_staging_GRAVITEE_PAYMENT_CLIENT_SECRET = credentials('staging_GRAVITEE_PAYMENT_CLIENT_SECRET')
+    }
+    stages {
+        stage('Terraform INIT') {
+            steps {
+                script {
+                    sh ('echo Running Terraform INIT')
+                    git branch: 'main-dev',
+                    credentialsId: '4ce76f5a-2e63-4cc5-aec7-4f9ed34908c4',
+                    url: 'git@gitlab.com:uex-devops/terraform.git'
+                    sh """
+                    terraform -chdir=environments/staging init -upgrade
+                    """
+                }
+            }
+        }
+        stage('Terraform PLAN') {
+            steps {
+                script {
+                    sh ('echo Running Terraform PLAN')
+                    sh """
+                    terraform -chdir=environments/staging plan -no-color
+                    """
+                }
+            }
+        }
+        stage('Terraform APPLY') {
+            steps {
+                input 'Do you approve deployment ?'
+                script {
+                    sh ('echo Running Terraform APPLY')
+                    sh """
+                    terraform -chdir=environments/staging apply -auto-approve
+                    """
+                }
+            }
+        }
+
+    }
+}
